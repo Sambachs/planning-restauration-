@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
@@ -39,6 +39,10 @@ def create_app():
 
     from app.planning import bp as planning_bp
     app.register_blueprint(planning_bp)
+
+    @app.route('/')
+    def index():
+        return redirect(url_for('auth.login'))
 
     from app.models import User
 

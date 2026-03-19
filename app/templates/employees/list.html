@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Employés{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Employés</h1>
+    <a href="{{ url_for('employees.create_employee') }}" class="btn btn-primary">+ Ajouter un employé</a>
+</div>
+
+<form method="GET" class="filter-bar" style="margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap">
+    <select name="poste" class="form-control" style="width:auto">
+        <option value="">Tous les postes</option>
+        {% for p in postes %}
+        <option value="{{ p.id }}" {% if filtre_poste == p.id %}selected{% endif %}>{{ p.nom }}</option>
+        {% endfor %}
+    </select>
+    <select name="statut" class="form-control" style="width:auto">
+        <option value="actif"   {% if filtre_statut == 'actif' %}selected{% endif %}>Actifs</option>
+        <option value="inactif" {% if filtre_statut == 'inactif' %}selected{% endif %}>Inactifs</option>
+        <option value="tous"    {% if filtre_statut == 'tous' %}selected{% endif %}>Tous</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filtrer</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Poste</th>
+            <th>Contrat</th>
+            <th>Embauché le</th>
+            <th>Statut</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in employes %}
+        <tr>
+            <td><strong>{{ e.nom_complet }}</strong></td>
+            <td>{{ e.email }}</td>
+            <td>
+                {% if e.poste %}
+                <span class="badge" style="background:{{ e.poste.couleur }}22;color:{{ e.poste.couleur }}">{{ e.poste.nom }}</span>
+                {% else %}—{% endif %}
+            </td>
+            <td>{{ e.contrat }}</td>
+            <td>{{ e.date_embauche.strftime('%d/%m/%Y') }}</td>
+            <td>
+                {% if e.actif %}
+                <span class="badge badge-success">Actif</span>
+                {% else %}
+                <span class="badge badge-danger">Inactif</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('employees.view_employee', id=e.id) }}" class="btn btn-secondary btn-sm">Voir</a>
+                <a href="{{ url_for('employees.edit_employee', id=e.id) }}" class="btn btn-secondary btn-sm">Modifier</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;color:#6b7280;padding:30px">Aucun employé trouvé.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p style="margin-top:12px;color:#6b7280;font-size:13px">{{ employes|length }} employé(s) affiché(s)</p>
+{% endblock %}

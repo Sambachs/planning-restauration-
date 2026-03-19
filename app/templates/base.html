@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Planning Restauration{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<nav class="navbar">
+    <div class="navbar-brand">Planning Restauration</div>
+    <div class="navbar-links">
+        {% if current_user.est_manager %}
+            <a href="{{ url_for('planning.week_view') }}">Planning</a>
+            <a href="{{ url_for('employees.list_employees') }}">Employés</a>
+            <a href="{{ url_for('shifts.create_shift') }}">+ Créneau</a>
+            <a href="{{ url_for('absences.list_absences') }}">Congés</a>
+        {% else %}
+            <a href="{{ url_for('planning.week_view') }}">Mon planning</a>
+            <a href="{{ url_for('absences.my_absences') }}">Mes congés</a>
+        {% endif %}
+        <span class="navbar-user">{{ current_user.nom_complet }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Déconnexion</a>
+    </div>
+</nav>
+{% endif %}
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/planning.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

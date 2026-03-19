@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Planning semaine{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Planning de la semaine</h1>
+    {% if current_user.est_manager %}
+    <a href="{{ url_for('shifts.create_shift') }}" class="btn btn-primary">+ Ajouter un créneau</a>
+    {% endif %}
+</div>
+
+<div class="week-nav">
+    <a href="{{ url_for('planning.week_view', date=prev_week) }}" class="btn btn-secondary">&#8592; Précédente</a>
+    <span class="week-label">Semaine du {{ semaine[0].strftime('%d %B') }} au {{ semaine[6].strftime('%d %B %Y') }}</span>
+    <a href="{{ url_for('planning.week_view', date=next_week) }}" class="btn btn-secondary">Suivante &#8594;</a>
+</div>
+
+{% if current_user.est_manager %}
+<form method="GET" class="filter-bar">
+    <select name="employe" class="form-control" style="width:auto">
+        <option value="">Tous les employés</option>
+        {% for e in employes %}
+        <option value="{{ e.id }}" {% if filtre_employe == e.id %}selected{% endif %}>{{ e.nom_complet }}</option>
+        {% endfor %}
+    </select>
+    <select name="poste" class="form-control" style="width:auto">
+        <option value="">Tous les postes</option>
+        {% for p in postes %}
+        <option value="{{ p.id }}" {% if filtre_poste == p.id %}selected{% endif %}>{{ p.nom }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary">Filtrer</button>
+    <a href="{{ url_for('planning.week_view') }}" class="btn btn-secondary">Réinitialiser</a>
+</form>
+{% endif %}
+
+<div class="planning-grid">
+    {% for i in range(7) %}
+    {% set jour = semaine[i] %}
+    <div class="planning-col {% if jour == today %}today{% endif %}">
+        <div class="planning-col-header">
+            <span class="day-name">{{ jours_fr[i] }}</span>
+            <span class="day-date">{{ jour.strftime('%d/%m') }}</span>
+        </div>
+        <div class="planning-col-body">
+            {% for shift in creneaux_par_jour[jour] %}
+            <div class="shift-card" style="border-left:4px solid {{ shift.poste.couleur }};background:{{ shift.poste.couleur }}18">
+                <div class="shift-time">{{ shift.heure_debut.strftime('%H:%M') }} – {{ shift.heure_fin.strftime('%H:%M') }}</div>
+                {% if current_user.est_manager %}
+                <div class="shift-employee">{{ shift.employe.nom_complet }}</div>
+                {% endif %}
+                <div class="shift-post" style="color:{{ shift.poste.couleur }}">{{ shift.poste.nom }}</div>
+            </div>
+            {% endfor %}
+            {% for absence in absences %}
+            {% if absence.employe and absence.date_debut <= jour and jour <= absence.date_fin %}
+            <div class="absence-card">
+                {% if current_user.est_manager %}{{ absence.employe.nom_complet }} — {% endif %}
+                {{ absence.type_absence.replace('_',' ').title() }}
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% if creneaux_par_jour[jour]|length == 0 %}
+            <div class="empty-day">—</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.week-label{font-weight:600;font-size:15px;color:#1e293b}
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.planning-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.planning-col{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;min-height:180px}
+.planning-col.today{box-shadow:0 0 0 2px #2563eb}
+.planning-col-header{background:#1e293b;color:#fff;padding:8px 10px;text-align:center}
+.planning-col.today .planning-col-header{background:#2563eb}
+.day-name{display:block;font-weight:700;font-size:13px}
+.day-date{display:block;font-size:12px;opacity:.8}
+.planning-col-body{padding:8px;display:flex;flex-direction:column;gap:6px}
+.shift-card{border-radius:6px;padding:7px 9px;font-size:12px}
+.shift-time{font-weight:700;font-size:11px;color:#374151}
+.shift-employee{font-weight:600;font-size:12px;margin-top:2px}
+.shift-post{font-size:11px;font-weight:600;margin-top:2px}
+.absence-card{background:#fee2e2;border-radius:6px;padding:6px 8px;font-size:12px;color:#991b1b;font-weight:500}
+.empty-day{text-align:center;color:#cbd5e1;font-size:20px;padding:20px 0}
+</style>
+{% endblock %}
