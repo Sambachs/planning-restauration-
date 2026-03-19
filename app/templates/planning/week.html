@@ -50,6 +50,12 @@
                 <div class="shift-employee">{{ shift.employe.nom_complet }}</div>
                 {% endif %}
                 <div class="shift-post" style="color:{{ shift.poste.couleur }}">{{ shift.poste.nom }}</div>
+                {% if current_user.est_manager %}
+                <div class="shift-actions">
+                    <a href="{{ url_for('shifts.edit_shift', id=shift.id) }}">✏</a>
+                    <a href="{{ url_for('shifts.delete_shift', id=shift.id) }}" style="color:#ef4444">✕</a>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
             {% for absence in absences %}
@@ -86,6 +92,8 @@
 .shift-time{font-weight:700;font-size:11px;color:#374151}
 .shift-employee{font-weight:600;font-size:12px;margin-top:2px}
 .shift-post{font-size:11px;font-weight:600;margin-top:2px}
+.shift-actions{margin-top:5px;display:flex;gap:8px;font-size:12px}
+.shift-actions a{text-decoration:none;opacity:.7}.shift-actions a:hover{opacity:1}
 .absence-card{background:#fee2e2;border-radius:6px;padding:6px 8px;font-size:12px;color:#991b1b;font-weight:500}
 .empty-day{text-align:center;color:#cbd5e1;font-size:20px;padding:20px 0}
 </style>

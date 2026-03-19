@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ titre }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ titre }}</h1>
+    <a href="{{ url_for('planning.week_view') }}" class="btn btn-secondary">← Retour au planning</a>
+</div>
+
+<div class="card" style="max-width:560px">
+    <form method="POST" id="shift-form">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.user_id.label }}
+            {{ form.user_id(class="form-control", id="user_id") }}
+            {% for e in form.user_id.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.post_id.label }}
+            {{ form.post_id(class="form-control") }}
+            {% for e in form.post_id.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.date_service.label }}
+            {{ form.date_service(class="form-control", id="date_service") }}
+            {% for e in form.date_service.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                {{ form.heure_debut.label }}
+                {{ form.heure_debut(class="form-control", id="heure_debut") }}
+                {% for e in form.heure_debut.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.heure_fin.label }}
+                {{ form.heure_fin(class="form-control", id="heure_fin") }}
+                {% for e in form.heure_fin.errors %}<div class="form-error">{{ e }}</div>{% endfor %}
+            </div>
+        </div>
+
+        <!-- Indicateur de conflit -->
+        <div id="conflict-alert" class="flash flash-danger" style="display:none"></div>
+        <div id="conflict-ok" class="flash flash-success" style="display:none">Aucun conflit détecté.</div>
+
+        <div class="form-group">
+            {{ form.note.label }}
+            {{ form.note(class="form-control", rows=2, placeholder="Commentaire optionnel...") }}
+        </div>
+
+        {% if shift is defined %}
+        <div style="margin-bottom:16px">
+            <a href="{{ url_for('shifts.duplicate_shift', id=shift.id) }}" class="btn btn-secondary btn-sm">
+                Dupliquer ce créneau
+            </a>
+            <a href="{{ url_for('shifts.delete_shift', id=shift.id) }}" class="btn btn-danger btn-sm" style="margin-left:8px">
+                Supprimer
+            </a>
+        </div>
+        {% endif %}
+
+        <div style="display:flex;gap:10px">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('planning.week_view') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.form-error { color:#dc2626; font-size:12px; margin-top:4px; }
+</style>
+<script>
+const EXCLUDE_ID = {{ shift.id if shift is defined else 'null' }};
+const conflictAlert = document.getElementById('conflict-alert');
+const conflictOk = document.getElementById('conflict-ok');
+
+function checkConflict() {
+    const userId = document.getElementById('user_id').value;
+    const dateService = document.getElementById('date_service').value;
+    const heureDebut = document.getElementById('heure_debut').value;
+    const heureFin = document.getElementById('heure_fin').value;
+
+    if (!userId || !dateService || !heureDebut || !heureFin) return;
+
+    fetch('/shifts/check-conflict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({ user_id: userId, date_service: dateService, heure_debut: heureDebut, heure_fin: heureFin, exclude_id: EXCLUDE_ID })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.conflict) {
+            conflictAlert.textContent = '⚠ Conflit détecté : ' + data.message;
+            conflictAlert.style.display = 'block';
+            conflictOk.style.display = 'none';
+        } else {
+            conflictAlert.style.display = 'none';
+            conflictOk.style.display = 'block';
+        }
+    });
+}
+
+['user_id', 'date_service', 'heure_debut', 'heure_fin'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', checkConflict);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ employe.nom_complet }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ employe.nom_complet }}</h1>
+    <div style="display:flex;gap:10px">
+        <a href="{{ url_for('employees.edit_employee', id=employe.id) }}" class="btn btn-primary">Modifier</a>
+        <form method="POST" action="{{ url_for('employees.toggle_employee', id=employe.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% if employe.actif %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Désactiver ce compte ?')">Désactiver</button>
+            {% else %}
+            <button type="submit" class="btn btn-success">Réactiver</button>
+            {% endif %}
+        </form>
+        <a href="{{ url_for('employees.list_employees') }}" class="btn btn-secondary">← Retour</a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+    <!-- Informations personnelles -->
+    <div class="card">
+        <div class="card-title">Informations personnelles</div>
+        <table style="box-shadow:none">
+            <tbody>
+                <tr><td style="color:#6b7280;width:140px">Prénom</td><td><strong>{{ employe.prenom }}</strong></td></tr>
+                <tr><td style="color:#6b7280">Nom</td><td><strong>{{ employe.nom }}</strong></td></tr>
+                <tr><td style="color:#6b7280">Email</td><td>{{ employe.email }}</td></tr>
+                <tr><td style="color:#6b7280">Téléphone</td><td>{{ employe.telephone or '—' }}</td></tr>
+                <tr><td style="color:#6b7280">Rôle</td><td>
+                    {% if employe.est_manager %}
+                    <span class="badge badge-warning">Manager</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Employé</span>
+                    {% endif %}
+                </td></tr>
+                <tr><td style="color:#6b7280">Statut</td><td>
+                    {% if employe.actif %}
+                    <span class="badge badge-success">Actif</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactif</span>
+                    {% endif %}
+                </td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Informations contractuelles -->
+    <div class="card">
+        <div class="card-title">Contrat</div>
+        <table style="box-shadow:none">
+            <tbody>
+                <tr><td style="color:#6b7280;width:140px">Poste</td><td>
+                    {% if employe.poste %}
+                    <span class="badge" style="background:{{ employe.poste.couleur }}22;color:{{ employe.poste.couleur }}">{{ employe.poste.nom }}</span>
+                    {% else %}—{% endif %}
+                </td></tr>
+                <tr><td style="color:#6b7280">Type contrat</td><td>{{ employe.contrat }}</td></tr>
+                <tr><td style="color:#6b7280">Date embauche</td><td>{{ employe.date_embauche.strftime('%d/%m/%Y') }}</td></tr>
+                <tr><td style="color:#6b7280">Membre depuis</td><td>{{ employe.created_at.strftime('%d/%m/%Y') }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Prochains créneaux -->
+    <div class="card" style="grid-column:1/-1">
+        <div class="card-title">Prochains créneaux</div>
+        {% if prochains_shifts %}
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Poste</th><th>Début</th><th>Fin</th><th>Note</th></tr>
+            </thead>
+            <tbody>
+                {% for shift in prochains_shifts %}
+                <tr>
+                    <td>{{ shift.date_service.strftime('%a %d/%m/%Y') }}</td>
+                    <td>
+                        <span class="badge" style="background:{{ shift.poste.couleur }}22;color:{{ shift.poste.couleur }}">
+                            {{ shift.poste.nom }}
+                        </span>
+                    </td>
+                    <td>{{ shift.heure_debut.strftime('%H:%M') }}</td>
+                    <td>{{ shift.heure_fin.strftime('%H:%M') }}</td>
+                    <td style="color:#6b7280;font-style:italic">{{ shift.note or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:#6b7280;font-size:14px">Aucun créneau à venir.</p>
+        {% endif %}
+        <div style="margin-top:14px">
+            <a href="{{ url_for('planning.week_view', employe=employe.id) }}" class="btn btn-secondary btn-sm">
+                Voir son planning complet
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
