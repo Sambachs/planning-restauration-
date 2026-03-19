@@ -10,14 +10,16 @@
 
 {% if current_user.is_authenticated %}
 <nav class="navbar">
-    <div class="navbar-brand">Planning Restauration</div>
+    <a href="{{ url_for('main.dashboard') }}" class="navbar-brand">Planning Restauration</a>
     <div class="navbar-links">
         {% if current_user.est_manager %}
+            <a href="{{ url_for('main.dashboard') }}">Tableau de bord</a>
             <a href="{{ url_for('planning.week_view') }}">Planning</a>
             <a href="{{ url_for('employees.list_employees') }}">Employés</a>
             <a href="{{ url_for('shifts.create_shift') }}">+ Créneau</a>
             <a href="{{ url_for('absences.list_absences') }}">Congés</a>
         {% else %}
+            <a href="{{ url_for('main.dashboard') }}">Tableau de bord</a>
             <a href="{{ url_for('planning.week_view') }}">Mon planning</a>
             <a href="{{ url_for('absences.my_absences') }}">Mes congés</a>
         {% endif %}

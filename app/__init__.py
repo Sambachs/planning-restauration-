@@ -40,6 +40,9 @@ def create_app():
     from app.planning import bp as planning_bp
     app.register_blueprint(planning_bp)
 
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp)
+
     @app.route('/')
     def index():
         return redirect(url_for('auth.login'))

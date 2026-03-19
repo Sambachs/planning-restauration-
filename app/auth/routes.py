@@ -19,7 +19,7 @@ def manager_required(f):
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('planning.week_view'))
+        return redirect(url_for('main.dashboard'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -35,7 +35,7 @@ def login():
 
         login_user(user)
         next_page = request.args.get('next')
-        return redirect(next_page or url_for('planning.week_view'))
+        return redirect(next_page or url_for('main.dashboard'))
 
     return render_template('auth/login.html', form=form)
 

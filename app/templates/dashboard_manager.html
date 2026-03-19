@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Bonjour, {{ current_user.prenom }} 👋</h1>
+    <span style="color:#6b7280;font-size:14px">{{ today.strftime('%A %d %B %Y') }}</span>
+</div>
+
+<!-- Cards résumé -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ nb_employes }}</div>
+        <div class="stat-label">Employés actifs</div>
+        <a href="{{ url_for('employees.list_employees') }}" class="stat-link">Gérer →</a>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ nb_creneaux_semaine }}</div>
+        <div class="stat-label">Créneaux cette semaine</div>
+        <a href="{{ url_for('planning.week_view') }}" class="stat-link">Voir le planning →</a>
+    </div>
+    <div class="stat-card {% if nb_attente > 0 %}stat-card-alert{% endif %}">
+        <div class="stat-value">{{ nb_attente }}</div>
+        <div class="stat-label">Demandes en attente</div>
+        <a href="{{ url_for('absences.list_absences', statut='en_attente') }}" class="stat-link">Traiter →</a>
+    </div>
+</div>
+
+<div class="dashboard-columns">
+
+    <!-- Prochains créneaux -->
+    <div class="card" style="flex:2">
+        <div class="card-title">Prochains créneaux</div>
+        {% if prochains_creneaux %}
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Employé</th><th>Poste</th><th>Horaire</th></tr>
+            </thead>
+            <tbody>
+                {% for shift in prochains_creneaux %}
+                <tr>
+                    <td>
+                        {% if shift.date_service == today %}
+                        <strong style="color:#2563eb">Aujourd'hui</strong>
+                        {% else %}
+                        {{ shift.date_service.strftime('%a %d/%m') }}
+                        {% endif %}
+                    </td>
+                    <td>{{ shift.employe.nom_complet }}</td>
+                    <td>
+                        <span class="badge" style="background:{{ shift.poste.couleur }}22;color:{{ shift.poste.couleur }}">
+                            {{ shift.poste.nom }}
+                        </span>
+                    </td>
+                    <td>{{ shift.heure_debut.strftime('%H:%M') }} – {{ shift.heure_fin.strftime('%H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:#6b7280;font-size:14px">Aucun créneau à venir.</p>
+        {% endif %}
+        <div style="margin-top:14px">
+            <a href="{{ url_for('planning.week_view') }}" class="btn btn-secondary btn-sm">Voir tout le planning</a>
+            <a href="{{ url_for('shifts.create_shift') }}" class="btn btn-primary btn-sm" style="margin-left:8px">+ Nouveau créneau</a>
+        </div>
+    </div>
+
+    <!-- Demandes en attente -->
+    <div class="card" style="flex:1">
+        <div class="card-title">
+            Demandes en attente
+            {% if nb_attente > 0 %}
+            <span class="badge badge-warning" style="margin-left:6px">{{ nb_attente }}</span>
+            {% endif %}
+        </div>
+        {% if demandes_attente %}
+        <div style="display:flex;flex-direction:column;gap:10px">
+            {% for a in demandes_attente %}
+            <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px">
+                <div style="font-weight:600;font-size:14px">{{ a.employe.nom_complet }}</div>
+                <div style="font-size:13px;color:#6b7280;margin-top:2px">
+                    {{ a.type_absence.replace('_',' ').title() }} —
+                    {{ a.date_debut.strftime('%d/%m') }} au {{ a.date_fin.strftime('%d/%m/%Y') }}
+                </div>
+                {% if a.motif %}<div style="font-size:12px;color:#9ca3af;margin-top:4px;font-style:italic">{{ a.motif }}</div>{% endif %}
+                <div style="margin-top:10px;display:flex;gap:6px">
+                    <form method="POST" action="{{ url_for('absences.approve_absence', id=a.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-sm">✓ Approuver</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('absences.reject_absence', id=a.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm">✗ Refuser</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:#6b7280;font-size:14px">Aucune demande en attente.</p>
+        {% endif %}
+        <div style="margin-top:14px">
+            <a href="{{ url_for('absences.list_absences') }}" class="btn btn-secondary btn-sm">Toutes les demandes</a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.stat-card { background:#fff; border-radius:10px; box-shadow:0 1px 6px rgba(0,0,0,.07); padding:24px; text-align:center; }
+.stat-card-alert { border:2px solid #f59e0b; }
+.stat-value { font-size:42px; font-weight:800; color:#1e293b; line-height:1; }
+.stat-label { font-size:13px; color:#6b7280; margin-top:6px; }
+.stat-link { display:inline-block; margin-top:10px; font-size:13px; color:#2563eb; }
+.dashboard-columns { display:flex; gap:20px; align-items:flex-start; }
+</style>
+{% endblock %}
