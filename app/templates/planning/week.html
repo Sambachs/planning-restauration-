@@ -13,6 +13,7 @@
     <a href="{{ url_for('planning.week_view', date=prev_week) }}" class="btn btn-secondary">&#8592; Précédente</a>
     <span class="week-label">Semaine du {{ semaine[0].strftime('%d %B') }} au {{ semaine[6].strftime('%d %B %Y') }}</span>
     <a href="{{ url_for('planning.week_view', date=next_week) }}" class="btn btn-secondary">Suivante &#8594;</a>
+    <a href="{{ url_for('planning.month_view') }}" class="btn btn-secondary">Vue mois</a>
 </div>
 
 {% if current_user.est_manager %}

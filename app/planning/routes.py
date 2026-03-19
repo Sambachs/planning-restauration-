@@ -75,10 +75,62 @@ def week_view():
 @bp.route('/planning/month')
 @login_required
 def month_view():
-    return render_template('planning/month.html')
+    import calendar
 
+    date_param = request.args.get('date')
+    if date_param:
+        try:
+            date_ref = date.fromisoformat(date_param)
+        except ValueError:
+            date_ref = date.today()
+    else:
+        date_ref = date.today()
 
-@bp.route('/planning/data')
-@login_required
-def get_planning_data():
-    return {'shifts': [], 'absences': []}
+    annee, mois = date_ref.year, date_ref.month
+    premier_jour = date(annee, mois, 1)
+    dernier_jour = date(annee, mois, calendar.monthrange(annee, mois)[1])
+
+    filtre_employe = request.args.get('employe', type=int)
+
+    query = Shift.query.filter(Shift.date_service >= premier_jour, Shift.date_service <= dernier_jour)
+    if not current_user.est_manager:
+        query = query.filter(Shift.user_id == current_user.id)
+    elif filtre_employe:
+        query = query.filter(Shift.user_id == filtre_employe)
+
+    shifts = query.order_by(Shift.heure_debut).all()
+    creneaux_par_jour = {}
+    for shift in shifts:
+        creneaux_par_jour.setdefault(shift.date_service, []).append(shift)
+
+    absences = Absence.query.filter(
+        Absence.statut.in_(['approuve', 'confirme']),
+        Absence.date_debut <= dernier_jour,
+        Absence.date_fin >= premier_jour,
+    ).all()
+
+    # Construire la grille calendrier (semaines)
+    cal = calendar.monthcalendar(annee, mois)
+    employes = User.query.filter_by(role='employe', actif=True).order_by(User.nom).all() if current_user.est_manager else []
+
+    mois_prev = date(annee - 1 if mois == 1 else annee, 12 if mois == 1 else mois - 1, 1)
+    mois_next = date(annee + 1 if mois == 12 else annee, 1 if mois == 12 else mois + 1, 1)
+
+    MOIS_FR = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+               'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+    JOURS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+
+    return render_template('planning/month.html',
+        cal=cal,
+        annee=annee,
+        mois=mois,
+        mois_nom=MOIS_FR[mois],
+        jours_fr=JOURS_FR,
+        creneaux_par_jour=creneaux_par_jour,
+        absences=absences,
+        employes=employes,
+        filtre_employe=filtre_employe,
+        mois_prev=mois_prev.isoformat(),
+        mois_next=mois_next.isoformat(),
+        today=date.today(),
+    )

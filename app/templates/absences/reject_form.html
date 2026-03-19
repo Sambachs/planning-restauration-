@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Refuser la demande{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Refuser la demande</h1>
+    <a href="{{ url_for('absences.list_absences') }}" class="btn btn-secondary">← Retour</a>
+</div>
+
+<div class="card" style="max-width:520px">
+    <div style="background:#fef2f2;border-radius:8px;padding:16px;margin-bottom:20px;border-left:4px solid #ef4444">
+        <p style="margin:0;font-size:14px;color:#991b1b">
+            <strong>Demande de {{ absence.employe.nom_complet }}</strong><br>
+            {% if absence.type_absence == 'conge_paye' %}Congé payé
+            {% elif absence.type_absence == 'sans_solde' %}Congé sans solde
+            {% elif absence.type_absence == 'maladie' %}Maladie
+            {% else %}Absence injustifiée{% endif %}
+            — du {{ absence.date_debut.strftime('%d/%m/%Y') }} au {{ absence.date_fin.strftime('%d/%m/%Y') }}
+            ({{ (absence.date_fin - absence.date_debut).days + 1 }} jour(s))
+        </p>
+        {% if absence.motif %}
+        <p style="margin:8px 0 0;font-size:13px;color:#6b7280">Motif : {{ absence.motif }}</p>
+        {% endif %}
+    </div>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.commentaire_manager.label }}
+            {{ form.commentaire_manager(class="form-control", rows=4, placeholder="Expliquez la raison du refus (optionnel)...") }}
+        </div>
+
+        <div style="display:flex;gap:10px">
+            {{ form.submit(class="btn btn-danger") }}
+            <a href="{{ url_for('absences.list_absences') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

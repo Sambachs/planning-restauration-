@@ -62,10 +62,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-success btn-sm">✓</button>
                 </form>
-                <form method="POST" action="{{ url_for('absences.reject_absence', id=a.id) }}" style="display:inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-danger btn-sm">✗</button>
-                </form>
+                <a href="{{ url_for('absences.reject_absence', id=a.id) }}" class="btn btn-danger btn-sm">✗</a>
                 {% else %}—{% endif %}
             </td>
         </tr>

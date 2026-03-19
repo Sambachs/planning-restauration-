@@ -7,37 +7,70 @@
     <a href="{{ url_for('absences.request_absence') }}" class="btn btn-primary">+ Nouvelle demande</a>
 </div>
 
+{% if absences %}
 <table>
     <thead>
         <tr>
             <th>Type</th>
             <th>Du</th>
             <th>Au</th>
+            <th>Durée</th>
             <th>Motif</th>
             <th>Soumis le</th>
             <th>Statut</th>
             <th>Commentaire</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
         {% for a in absences %}
         <tr>
-            <td>{{ a.type_absence.replace('_',' ').title() }}</td>
+            <td>
+                {% if a.type_absence == 'conge_paye' %}Congé payé
+                {% elif a.type_absence == 'sans_solde' %}Congé sans solde
+                {% elif a.type_absence == 'maladie' %}Maladie
+                {% else %}Absence injustifiée{% endif %}
+            </td>
             <td>{{ a.date_debut.strftime('%d/%m/%Y') }}</td>
             <td>{{ a.date_fin.strftime('%d/%m/%Y') }}</td>
-            <td>{{ a.motif or '—' }}</td>
+            <td style="text-align:center">
+                {{ (a.date_fin - a.date_debut).days + 1 }} j
+            </td>
+            <td style="color:#6b7280;font-style:italic">{{ a.motif or '—' }}</td>
             <td>{{ a.created_at.strftime('%d/%m/%Y') }}</td>
             <td>
-                {% if a.statut == 'en_attente' %}<span class="badge badge-warning">En attente</span>
-                {% elif a.statut == 'approuve' %}<span class="badge badge-success">Approuvé</span>
-                {% elif a.statut == 'refuse' %}<span class="badge badge-danger">Refusé</span>
-                {% else %}<span class="badge badge-secondary">Confirmé</span>{% endif %}
+                {% if a.statut == 'en_attente' %}
+                    <span class="badge badge-warning">En attente</span>
+                {% elif a.statut == 'approuve' %}
+                    <span class="badge badge-success">Approuvé</span>
+                {% elif a.statut == 'refuse' %}
+                    <span class="badge badge-danger">Refusé</span>
+                {% else %}
+                    <span class="badge badge-secondary">Confirmé</span>
+                {% endif %}
             </td>
-            <td>{{ a.commentaire_manager or '—' }}</td>
+            <td style="font-size:13px;color:#6b7280;font-style:italic">
+                {{ a.commentaire_manager or '—' }}
+            </td>
+            <td>
+                {% if a.statut == 'en_attente' %}
+                <form method="POST" action="{{ url_for('absences.cancel_absence', id=a.id) }}"
+                      onsubmit="return confirm('Annuler cette demande ?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
-        {% else %}
-        <tr><td colspan="7" style="text-align:center;color:#6b7280;padding:30px">Aucune demande pour le moment.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+<p style="margin-top:12px;color:#6b7280;font-size:13px">{{ absences|length }} demande(s) au total</p>
+
+{% else %}
+<div class="card" style="text-align:center;padding:40px">
+    <p style="color:#6b7280;font-size:15px;margin-bottom:20px">Vous n'avez pas encore de demande de congé.</p>
+    <a href="{{ url_for('absences.request_absence') }}" class="btn btn-primary">Faire une demande</a>
+</div>
+{% endif %}
 {% endblock %}

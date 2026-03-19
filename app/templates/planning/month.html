@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Planning mensuel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Planning mensuel</h1>
+    {% if current_user.est_manager %}
+    <a href="{{ url_for('shifts.create_shift') }}" class="btn btn-primary">+ Ajouter un créneau</a>
+    {% endif %}
+</div>
+
+<div class="week-nav">
+    <a href="{{ url_for('planning.month_view', date=mois_prev) }}" class="btn btn-secondary">&#8592; Précédent</a>
+    <span class="week-label">{{ mois_nom }} {{ annee }}</span>
+    <a href="{{ url_for('planning.month_view', date=mois_next) }}" class="btn btn-secondary">Suivant &#8594;</a>
+</div>
+
+{% if current_user.est_manager %}
+<form method="GET" style="display:flex;gap:10px;margin-bottom:20px;align-items:center">
+    <select name="employe" class="form-control" style="width:auto">
+        <option value="">Tous les employés</option>
+        {% for e in employes %}
+        <option value="{{ e.id }}" {% if filtre_employe == e.id %}selected{% endif %}>{{ e.nom_complet }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary">Filtrer</button>
+    <a href="{{ url_for('planning.month_view') }}" class="btn btn-secondary">Réinitialiser</a>
+    <a href="{{ url_for('planning.week_view') }}" class="btn btn-secondary" style="margin-left:auto">Vue semaine</a>
+</form>
+{% else %}
+<div style="text-align:right;margin-bottom:16px">
+    <a href="{{ url_for('planning.week_view') }}" class="btn btn-secondary">Vue semaine</a>
+</div>
+{% endif %}
+
+<div class="month-grid">
+    {% for jour_nom in jours_fr %}
+    <div class="month-header-cell">{{ jour_nom }}</div>
+    {% endfor %}
+
+    {% for semaine in cal %}
+    {% for num_jour in semaine %}
+    {% if num_jour == 0 %}
+    <div class="month-cell month-cell-empty"></div>
+    {% else %}
+    {% set jour = annee|string + '-' + '%02d'|format(mois) + '-' + '%02d'|format(num_jour) %}
+    {% set jour_date = jour|string %}
+    <div class="month-cell {% if today.day == num_jour and today.month == mois and today.year == annee %}month-cell-today{% endif %}">
+        <div class="month-cell-num">{{ num_jour }}</div>
+        {% for shift in creneaux_par_jour.values() %}{% endfor %}
+        {% for d, shifts in creneaux_par_jour.items() %}
+        {% if d.day == num_jour and d.month == mois and d.year == annee %}
+        {% for shift in shifts %}
+        <div class="month-shift" style="border-left:3px solid {{ shift.poste.couleur }};background:{{ shift.poste.couleur }}20">
+            {{ shift.heure_debut.strftime('%H:%M') }}
+            {% if current_user.est_manager %} · {{ shift.employe.prenom }}{% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% for absence in absences %}
+        {% if absence.date_debut.day <= num_jour and absence.date_fin.day >= num_jour and absence.date_debut.month <= mois and absence.date_fin.month >= mois %}
+        {% if absence.date_debut.year <= annee and absence.date_fin.year >= annee %}
+        <div class="month-absence">
+            {% if current_user.est_manager %}{{ absence.employe.prenom }} — {% endif %}
+            {{ absence.type_absence.replace('_',' ').title() }}
+        </div>
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.week-label{font-weight:600;font-size:16px;color:#1e293b}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.month-header-cell{background:#1e293b;color:#fff;text-align:center;padding:8px;font-weight:700;font-size:12px;border-radius:4px}
+.month-cell{background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.06);min-height:90px;padding:6px;font-size:11px;overflow:hidden}
+.month-cell-empty{background:transparent;box-shadow:none}
+.month-cell-today{box-shadow:0 0 0 2px #2563eb}
+.month-cell-num{font-weight:700;font-size:13px;color:#374151;margin-bottom:4px}
+.month-cell-today .month-cell-num{color:#2563eb}
+.month-shift{border-radius:3px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1e293b;font-weight:500}
+.month-absence{background:#fee2e2;border-radius:3px;padding:2px 5px;margin-bottom:2px;color:#991b1b;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+{% endblock %}
