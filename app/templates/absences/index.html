@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🏖️ Congés et absences</h1>
+        <a href="{{ url_for('absences.add') }}" class="btn btn-primary">➕ Nouvelle demande</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                {% if current_user.role == 'manager' %}
+                    <th>Employé</th>
+                {% endif %}
+                <th>Type</th>
+                <th>Date début</th>
+                <th>Date fin</th>
+                <th>Motif</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for absence in absences %}
+            <tr>
+                {% if current_user.role == 'manager' %}
+                    <td>{{ absence.employe.prenom }} {{ absence.employe.nom }}</td>
+                {% endif %}
+                <td>{{ absence.type_absence }}</td>
+                <td>{{ absence.date_debut.strftime('%d/%m/%Y') }}</td>
+                <td>{{ absence.date_fin.strftime('%d/%m/%Y') }}</td>
+                <td>{{ absence.motif or '-' }}</td>
+                <td>
+                    {% if absence.statut == 'en_attente' %}
+                        <span class="badge badge-warning">⏳ En attente</span>
+                    {% elif absence.statut == 'approuvee' %}
+                        <span class="badge badge-success">✅ Approuvée</span>
+                    {% else %}
+                        <span class="badge badge-danger">❌ Refusée</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if current_user.role == 'manager' and absence.statut == 'en_attente' %}
+                        <a href="{{ url_for('absences.approve', id=absence.id) }}" 
+                           class="btn btn-small btn-success">✅ Approuver</a>
+                        <a href="{{ url_for('absences.refuse', id=absence.id) }}" 
+                           class="btn btn-small btn-danger">❌ Refuser</a>
+                    {% endif %}
+                    {% if absence.statut == 'en_attente' %}
+                        <a href="{{ url_for('absences.delete', id=absence.id) }}"
+                           class="btn btn-small"
+                           onclick="return confirm('Annuler cette demande ?')">🗑️ Annuler</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

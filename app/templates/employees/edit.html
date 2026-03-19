@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>✏️ Modifier un employé</h1>
+        <a href="{{ url_for('employees.index') }}" class="btn">⬅️ Retour</a>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('employees.edit', id=employe.id) }}">
+            <div class="form-group">
+                <label>Prénom</label>
+                <input type="text" name="prenom" value="{{ employe.prenom }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Nom</label>
+                <input type="text" name="nom" value="{{ employe.nom }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ employe.email }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Téléphone</label>
+                <input type="text" name="telephone" value="{{ employe.telephone or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Type de contrat</label>
+                <select name="type_contrat">
+                    <option value="CDI" {% if employe.type_contrat == 'CDI' %}selected{% endif %}>CDI</option>
+                    <option value="CDD" {% if employe.type_contrat == 'CDD' %}selected{% endif %}>CDD</option>
+                    <option value="Extra" {% if employe.type_contrat == 'Extra' %}selected{% endif %}>Extra</option>
+                    <option value="Alternance" {% if employe.type_contrat == 'Alternance' %}selected{% endif %}>Alternance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Rôle</label>
+                <select name="role">
+                    <option value="employe" {% if employe.role == 'employe' %}selected{% endif %}>Employé</option>
+                    <option value="manager" {% if employe.role == 'manager' %}selected{% endif %}>Manager</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">✅ Enregistrer les modifications</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

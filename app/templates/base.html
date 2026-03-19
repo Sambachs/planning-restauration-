@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning Restauration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    {% if current_user.is_authenticated %}
+    <nav>
+        <div class="nav-brand">🍽️ Planning Restauration</div>
+        <div class="nav-links">
+            <a href="{{ url_for('planning.index') }}">📅 Planning</a>
+            {% if current_user.role == 'manager' %}
+                <a href="{{ url_for('employees.index') }}">👥 Employés</a>
+                <a href="{{ url_for('shifts.index') }}">📋 Créneaux</a>
+            {% endif %}
+            <a href="{{ url_for('absences.index') }}">🏖️ Congés</a>
+            <a href="{{ url_for('auth.logout') }}">🚪 Déconnexion</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

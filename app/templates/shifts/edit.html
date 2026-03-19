@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>✏️ Modifier un créneau</h1>
+        <a href="{{ url_for('shifts.index') }}" class="btn">⬅️ Retour</a>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('shifts.edit', id=shift.id) }}">
+            <div class="form-group">
+                <label>Employé</label>
+                <select name="user_id" required>
+                    {% for employe in employes %}
+                        <option value="{{ employe.id }}" 
+                            {% if employe.id == shift.user_id %}selected{% endif %}>
+                            {{ employe.prenom }} {{ employe.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Poste</label>
+                <select name="post_id" required>
+                    {% for poste in postes %}
+                        <option value="{{ poste.id }}"
+                            {% if poste.id == shift.post_id %}selected{% endif %}>
+                            {{ poste.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" 
+                       value="{{ shift.date.strftime('%Y-%m-%d') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Heure de début</label>
+                <input type="time" name="heure_debut" 
+                       value="{{ shift.heure_debut.strftime('%H:%M') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Heure de fin</label>
+                <input type="time" name="heure_fin" 
+                       value="{{ shift.heure_fin.strftime('%H:%M') }}" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">✅ Enregistrer les modifications</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
