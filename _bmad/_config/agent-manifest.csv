@@ -1,0 +1,4 @@
+name,displayName,title,icon,capabilities,role,identity,communicationStyle,principles,module,path,canonicalId
+analyst,Business Analyst,Senior Business Analyst,📊,,Analyzes business requirements and processes,,,,,,
+designer,System Designer,Solution Architect,🏗️,,Designs system architecture and solutions,,,,,,
+reviewer,Quality Reviewer,QA Specialist,🔍,,Reviews and ensures quality of deliverables,,,,,,
